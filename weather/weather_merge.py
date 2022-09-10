@@ -1,9 +1,11 @@
 
 import os
+import sys
 import pandas as pd 
 import numpy as np
 import datetime
-import csv_calculate_DNI
+sys.path.append("..") 
+form model.CalculateDNI_EvaluateForSolar import csv_calculate_DNI
 
 
 def convert_pressure(num):
@@ -112,13 +114,10 @@ def csv_merge(file1_path, file2_path):
 
 def main():
     path = r'C:\Users\lucky_wang\OneDrive\automation'
-    file1_path = os.path.join(path, 'test_data', '21-6-30 To 21-7-21.csv')
-    file2_path = os.path.join(path, 'test_data')
+    file1_path = os.path.join(path, 'test_data', '21-6-30 To 21-7-21.csv') # 天气文件 warning:预处理的时候，所有包含的日期都要完整并且保留表头信息
+    file2_path = os.path.join(path, 'test_data') # 包含有 ghi_file 和 dhi_file的文件位置
     print(file1_path, file2_path)
     csv_merge(file1_path, file2_path) #file1为气象站数据 file2为辐射数据
-    
-    # df1 = 
-    # csv_merge(df, df1)
 
 if __name__ == '__main__':
     main()
