@@ -2,8 +2,10 @@ import os
 import re
 import time
 import psutil
+import paramiko
 import shutil
 import datetime
+import logging
 
 from time import sleep
 
@@ -108,10 +110,10 @@ class PIload:
             files = os.listdir(download_path)
             for file in files:
                 local_path = os.path.join(download_path, file)
-                remote_upload_path = os.path.join(remote_path, file)
+                remote_upload_path = os.path.join(remote_path, file) 
                 self.logger.info(local_path)
                 self.logger.info(remote_upload_path)
-                self.client.put(local_path, remote_upload_path)
+                self.client.put(local_path, remote_upload_path) ## 传输本质
                 self.logger.info("sftp put pass")
 
         except Exception as e:
@@ -160,8 +162,8 @@ class PIload:
     
 
 def main():
-    fuse_obj = PIload(host, port, sftp_username, sftp_password)
-    fuse_obj.create_sftp_client()
+    pi_obj = PIload(host, port, sftp_username, sftp_password)
+    pi_obj.create_sftp_client()
 
     j = 1
     for i in range(efusenumber):
