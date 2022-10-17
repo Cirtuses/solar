@@ -51,6 +51,20 @@ def R(y, y_hat):
 
     return correlation
 
+# SS-MAE SS-RMSE
+def SS_MAE(y, y_hat, p):
+    p_mae = MAE(y, p)
+    f_mae = MAE(y, y_hat)
+    ss_mae = 1 - (f_mae / p_mae)
+    return ss_mae
+
+def SS_RMSE(y, y_hat, p):
+    p_rmse = RMSE(y, p)
+    f_rmse = RMSE(y, y_hat)
+    ss_rmse = 1 - (f_rmse / p_rmse)
+    return ss_rmse
+
+
 
 def indicators(y, y_hat):
     mae = MAE(y, y_hat)
@@ -124,7 +138,7 @@ def main():
                 y = f['Measurement'].to_numpy()
                 # y_hat = f['WeightForecst'].to_numpy()
                 y_hat = f['Nowcasting'].to_numpy()
-                # p = f['Measurement'].shift(1).to_numpy()
+                p = f['Measurement'].shift(1).to_numpy()
                 # p = f['Nowcasting'].shift(1).to_numpy()
                 # y_hat = p
 
@@ -135,13 +149,15 @@ def main():
                 # nowcasting = nowcasting.where(nowcasting > 0, 0)
 
                 mae, nmae, rmse, nrmse, r, mape, mbe = indicators(y[0:], y_hat[0:])
+                ss_mae = SS_MAE(y[0:], y_hat[0:], p[0:])
+                ss_rmse = SS_RMSE(y[0:], y_hat[0:], p[0:])
                 print("MAE: {}\n"
                       "nMAE: {}\n"
                       "RMSE: {}\n"
                       "nRMSE: {}\n"
                       "R: {}\n"
                       "MAPE: {} %\n"
-                      "MBE: {}".format(mae, nmae, rmse, nrmse, r, mape, mbe))
+                      "MBE: {}".format(mae, nmae, rmse, nrmse, r, mape, mbe, ss_mae, ss_rmse))
 
                 mae = round(mae, 2)
                 nmae = round(nmae, 2)
@@ -151,6 +167,8 @@ def main():
                 mape = round(mape, 2)
                 mape = str(mape) + "%"
                 mbe = round(mbe, 2)
+                ss_mae = str(ss_mae) + "%"
+                ss_rmse = str(ss_rmse) + "%"
 
                 # file_name = "3_another_result.csv"
                 file_name = "result.csv"
@@ -159,15 +177,15 @@ def main():
                 if os.path.isfile(file_name) == True:
                     with open(file_name, 'a+', encoding="utf-8", newline='') as csvfile:
                         writer = csv.writer(csvfile)
-                        writer.writerow([file_tag, mae, nmae, rmse, nrmse, r, mape, mbe])
+                        writer.writerow([file_tag, mae, nmae, rmse, nrmse, r, mape, mbe, ss_mae, ss_rmse])
                         csvfile.close()
 
                 else:
-                    field_order = ["file_name", "MAE", "nMAE", "RMSE", "nRMSE", "R", "MAPE", "MBE"]
+                    field_order = ["file_name", "MAE", "nMAE", "RMSE", "nRMSE", "R", "MAPE", "MBE", "SS-MAE", "SS-RMSE"]
                     with open(file_name, 'w', encoding="utf-8", newline='') as csvfile:
                         writer = csv.writer(csvfile)
                         writer.writerow(field_order)
-                        writer.writerow([file_tag, mae, nmae, rmse, nrmse, r, mape, mbe])
+                        writer.writerow([file_tag, mae, nmae, rmse, nrmse, r, mape, mbe, ss_mae, ss_rmse])
                         csvfile.close()
 
 

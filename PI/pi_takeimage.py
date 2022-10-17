@@ -4,13 +4,27 @@ from picamera import PiCamera
 import datetime
 import os
 
+""" 
+    pi take the images
+
+    Args:
+        LR_or_HR: type
+        interval: interval time
+        count: number of images
+        save_path:  destination data
+        exposures:  exposure
+        log:  log of the images
+    Returns: 
+"""
 save_path = "/home/pi/Desktop/"
 camera = PiCamera()
 count = 0
 exposures = [100, 450, 700]
-resolutions = [(1600, 1200)]
+LR_or_HR = "LR"
+resolutions = [(1600, 1200)] if LR_or_HR == "HR" else [(640, 480)]
 archives = ['/HR']
 interval = 10  # Unit: second
+log = save_path+'/' + LR_or_HR + 'log.txt'
 
 def takeImages(iso_values,st_time):
 	global count, save_path
@@ -54,7 +68,7 @@ if __name__ == '__main__':
 			os.mkdir(save_path + archives[i])
 		print("create DIR path")
 
-	f = open(save_path+'/HRlog.txt', 'a+')
+	f = open(log, 'a+')  # logs
 	while True:
 		time_now = datetime.datetime.now()
 		# print('\rTime: %s' %(time_now.strftime('%Y/%m/%d %H:%M:%S')), end='', flush=True)
