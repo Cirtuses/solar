@@ -26,7 +26,7 @@ archives = ['/HR']
 interval = 10  # Unit: second
 log = save_path+'/' + LR_or_HR + 'log.txt'
 
-def takeImages(iso_values,st_time):
+def takeImagesWithTime(iso_values,st_time, save_path):
 	global count, save_path
 	for exposure in exposures:
 		# Set ISO to the desired value
@@ -47,13 +47,12 @@ def takeImages(iso_values,st_time):
 		img_time = st_time.strftime("(%Y-%m-%d %H-%M-%S)")
 		for i, resolu in enumerate(resolutions):
 			camera.resolution = resolu
-			path = save_path + archives[i]
+			path =  + archives[i]
 			# Finally, take several photos with the fixed settings
-			camera.capture('%s/id%d_iso%d_expo%d_%s.jpg' %(path, count, iso_values, exposure, img_time))
+			camera.capture('%s/id%d_iso%d_expo%d_%s.jpg' %(path, count, iso_values, exposure, img_time)) # image 名称
 	count += 1
 
-
-if __name__ == '__main__':
+def main():
 	iso = 100
 	signal = False
 	record = False
@@ -86,7 +85,7 @@ if __name__ == '__main__':
 
 		if signal:
 			#S = time.time()
-			takeImages(iso, time_now)
+			takeImagesWithTime(iso, time_now)
 			f.write('%s\n' %(time_now.strftime('%Y/%m/%d %H:%M:%S')))
 			signal = False
 			#E = time.time()
@@ -95,3 +94,9 @@ if __name__ == '__main__':
 	f.close()
 	camera.close()
 	print('Today is Done, have a rest.')
+
+
+if __name__ == '__main__':
+	main()
+
+	
