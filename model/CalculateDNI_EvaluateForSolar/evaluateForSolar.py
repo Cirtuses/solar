@@ -7,6 +7,9 @@ import os
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 from soupsieve import select
 
+# dir_path = r"D:\PythonWorks\solar_project\Result_8-12" ## win format
+dir_path = "/Users/cirtus/Desktop/solar/test/solar/data/" ## 300-300
+
 
 def dateparse(timestamp):
     #   07/21/21 下午06时34分00
@@ -55,16 +58,15 @@ def R(y, y_hat):
 def SS_MAE(y, y_hat, p):
     p_mae = MAE(y, p)
     f_mae = MAE(y, y_hat)
+    print("{} {}".format(p_mae, f_mae))
     ss_mae = 1 - (f_mae / p_mae)
-    return ss_mae
+    return ss_mae * 100
 
 def SS_RMSE(y, y_hat, p):
     p_rmse = RMSE(y, p)
     f_rmse = RMSE(y, y_hat)
     ss_rmse = 1 - (f_rmse / p_rmse)
-    return ss_rmse
-
-
+    return ss_rmse * 100
 
 def indicators(y, y_hat):
     mae = MAE(y, y_hat)
@@ -78,7 +80,6 @@ def indicators(y, y_hat):
 
 
 def main():
-    dir_path = r"D:\PythonWorks\solar_project\Result_8-12"
     os.chdir(dir_path)
 
     dirlist = os.listdir(dir_path)
@@ -112,10 +113,12 @@ def main():
                 file = os.path.join(file_path, file)
                 # if file.find("dni") >=0:
                 # head = ["Time", "Measurement", "Nowcasting", "WeightForecst"]
+                print("file \n")
                 print(file)
                 head = ["Time", "Measurement", "Nowcasting"]
                 f = pd.read_csv(file, header=0)
                 f.columns = head
+                print("f \n")
                 print(f)
 
                 # idx = 0
@@ -145,19 +148,28 @@ def main():
                 # y = np.where(y, y, 1)
                 # y_hat = np.where(y_hat, y_hat, 1)
                 y_hat = np.where(y_hat >= 0, y_hat, 0)
+                print(y[1:])
+                print(y_hat[1:])
+                print(p[1:])
 
                 # nowcasting = nowcasting.where(nowcasting > 0, 0)
 
-                mae, nmae, rmse, nrmse, r, mape, mbe = indicators(y[0:], y_hat[0:])
-                ss_mae = SS_MAE(y[0:], y_hat[0:], p[0:])
-                ss_rmse = SS_RMSE(y[0:], y_hat[0:], p[0:])
+                mae, nmae, rmse, nrmse, r, mape, mbe = indicators(y[1:], y_hat[1:])
+                mae, nmae, rmse, nrmse, r, mape, mbe = indicators(y[1:], p[1:])
+                
+                
+                ss_mae = SS_MAE(y[1:], y_hat[1:], p[1:])
+                ss_rmse = SS_RMSE(y[1:], y_hat[1:], p[1:])
                 print("MAE: {}\n"
                       "nMAE: {}\n"
                       "RMSE: {}\n"
                       "nRMSE: {}\n"
                       "R: {}\n"
                       "MAPE: {} %\n"
-                      "MBE: {}".format(mae, nmae, rmse, nrmse, r, mape, mbe, ss_mae, ss_rmse))
+                      "MBE: {} \n"
+                      "SS_MAE: {} %\n"
+                      "SS_RMSE: {} %".format(mae, nmae, rmse, nrmse, r, mape, mbe, ss_mae, ss_rmse))
+                # exit()
 
                 mae = round(mae, 2)
                 nmae = round(nmae, 2)
@@ -167,8 +179,8 @@ def main():
                 mape = round(mape, 2)
                 mape = str(mape) + "%"
                 mbe = round(mbe, 2)
-                ss_mae = str(ss_mae) + "%"
-                ss_rmse = str(ss_rmse) + "%"
+                ss_mae = str(round(ss_mae, 2)) + "%"
+                ss_rmse = str(round(ss_rmse, 2)) + "%"
 
                 # file_name = "3_another_result.csv"
                 file_name = "result.csv"
