@@ -260,9 +260,9 @@ def execute(path):
 
 
 def main():
-    path=r'D:\PythonWorks\solar_project\cal_dni\csv_data'
-    os.chdir(path)
-    execute(path)
+    dir_path=r'D:\PythonWorks\solar_project\cal_dni\csv_data'
+    os.chdir(dir_path)
+    execute(dir_path)
 
 
 if __name__ == "__main__":

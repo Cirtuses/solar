@@ -7,7 +7,7 @@ import os
 from natsort import ns, natsorted
 
 index = 1
-resolu = ['LR', 'HR']
+resolution = ['LR', 'HR']
 date = ['20220112']
 #path=r'C:\Users\lucky_wang\OneDrive\二年级\太阳能\csv\v1\sub1'
 root_path = "/media/nucleus/solar/TongJi5F-LRHR/" + date[0] + '/'
@@ -52,9 +52,9 @@ if __name__ == '__main__':
     # combine every 3 images
     for day in date:
         total = 0
-        dst_path = save_path + resolu[index] + '-HDR/'
+        dst_path = save_path + resolution[index] + '-HDR/'
         os.mkdir(dst_path)
-        img_path = root_path + resolu[index] + '/'
+        img_path = root_path + resolution[index] + '/'
         imgs = os.listdir(img_path)
         #  id0_iso100_expo450_(2020-12-21 09-00-00).jpg
         # for img in imgs:
