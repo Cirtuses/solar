@@ -1,5 +1,6 @@
 import datetime
 
+import re
 import pandas as pd
 import numpy as np
 import csv
@@ -58,7 +59,7 @@ def R(y, y_hat):
 def SS_MAE(y, y_hat, p):
     p_mae = MAE(y, p)
     f_mae = MAE(y, y_hat)
-    print("{} {}".format(p_mae, f_mae))
+    print("SSMAE :{} {}".format(p_mae, f_mae))
     ss_mae = 1 - (f_mae / p_mae)
     return ss_mae * 100
 
@@ -138,28 +139,40 @@ def main():
                 # criteria = ((f["month"] == 5 ) & (f["day"] == 9)) | ((f["month"] == 5 ) & (f["day"] == 30)) | ((f["month"] == 6 ) & (f["day"] == 25)) | ((f["month"] == 7 ) & (f["day"] == 1))
                 # criteria = ((f["month"] == 4 ) & (f["day"] == 25)) | ((f["month"] == 5 ) & (f["day"] == 20))
                 # f = f[criteria]
+                print(dir)
+                number = re.findall("\d+",dir) 
+                print(number)
+                late = int(number[1]) // int(number[0])
+                print(late)
+                
                 y = f['Measurement'].to_numpy()
                 # y_hat = f['WeightForecst'].to_numpy()
                 y_hat = f['Nowcasting'].to_numpy()
-                p = f['Measurement'].shift(1).to_numpy()
+                p = f['Measurement'].shift(late).to_numpy()
                 # p = f['Nowcasting'].shift(1).to_numpy()
                 # y_hat = p
 
                 # y = np.where(y, y, 1)
                 # y_hat = np.where(y_hat, y_hat, 1)
                 y_hat = np.where(y_hat >= 0, y_hat, 0)
-                print(y[1:])
-                print(y_hat[1:])
-                print(p[1:])
+                print("three")
+                ## late
+                
+
+                # print(y[late:])
+                # print(y_hat[late:])
+                # print(p[late:])
+                # exit()
+                
 
                 # nowcasting = nowcasting.where(nowcasting > 0, 0)
 
-                mae, nmae, rmse, nrmse, r, mape, mbe = indicators(y[1:], y_hat[1:])
-                mae, nmae, rmse, nrmse, r, mape, mbe = indicators(y[1:], p[1:])
+                mae, nmae, rmse, nrmse, r, mape, mbe = indicators(y[late:], y_hat[late:])
+                # mae, nmae, rmse, nrmse, r, mape, mbe = indicators(y[late:], p[late:])
+                # exit()
                 
-                
-                ss_mae = SS_MAE(y[1:], y_hat[1:], p[1:])
-                ss_rmse = SS_RMSE(y[1:], y_hat[1:], p[1:])
+                ss_mae = SS_MAE(y[late:], y_hat[late:], p[late:])
+                ss_rmse = SS_RMSE(y[late:], y_hat[late:], p[late:])
                 print("MAE: {}\n"
                       "nMAE: {}\n"
                       "RMSE: {}\n"
@@ -169,7 +182,6 @@ def main():
                       "MBE: {} \n"
                       "SS_MAE: {} %\n"
                       "SS_RMSE: {} %".format(mae, nmae, rmse, nrmse, r, mape, mbe, ss_mae, ss_rmse))
-                # exit()
 
                 mae = round(mae, 2)
                 nmae = round(nmae, 2)

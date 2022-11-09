@@ -81,9 +81,9 @@ def weather_process(data):
     # Global Horizontal Radiation, Diffuse horizontal radiation, Direct Normal Radiation,
     # solar_data['ghi_predict'], solar_data['dhi_predict'], solar_data['dni_predict']
 
-    result['Global Horizontal Radiation'] = data['ghi_predict']
-    result['Diffuse horizontal radiation'] = data['dhi_predict']
-    result['Direct Normal Radiation'] = data['dni_predict']
+    result['Global Horizontal Radiation'] = data['ghi_predict'].map(lambda x:x*3600)
+    result['Diffuse horizontal radiation'] = data['dhi_predict'].map(lambda x:x*3600)
+    result['Direct Normal Radiation'] = data['dni_predict'].map(lambda x:x*3600)
 
    
     #data['TIME'] = data['TIME'].astype(np.int)
@@ -92,6 +92,7 @@ def weather_process(data):
     print(len)
     df = result
     criteria = (df.index < 8760) & (df.index%2 == 0)
+    criteria = (df["Month"] == 7 ) & (df["Day"] == 1) & (df["Minute"] == 0) & (df["Second"] == 0)
     print(df[criteria])
     #result.to_csv('data2.csv', header=0,index=0, sep=' ')
     df[criteria].to_csv('data_1min_measure.csv', header=0,index=0, sep=' ')

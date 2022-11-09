@@ -1,3 +1,4 @@
+# coding:utf-8
 import os
 import re
 import time
@@ -16,9 +17,10 @@ import logging
 from pi_upload_config import *
 
 time = time.strftime('%Y%m%d', time.localtime(time.time()))
-download_path = os.join(download_path, time)
+download_path = os.path.join(download_path, time)
 print(download_path)
 
+import time
 
 
 class PIload:
@@ -148,10 +150,10 @@ class PIload:
             # 获取SFTP实例
             self.logger.info("sftp from_transport pass")
             
-            while not is_existence:
-                is_existence = True if "request" in self.client.listdir(communicate_path) else False
-                if not is_existence:
-                    self.logger.info("upload pause")
+            #while not is_existence:
+            #    is_existence = True if "request" in self.client.listdir(communicate_path) else False
+            #    if not is_existence:
+            #        self.logger.info("upload pause")
             
             self.logger.info("start upload")
 
@@ -217,6 +219,7 @@ class PIload:
     
 
 def main():
+    start_time = time.time()
     fuse_obj = PIload(host, port, sftp_username, sftp_password)
     fuse_obj.create_sftp_client()
 
@@ -227,9 +230,13 @@ def main():
             fuse_obj.renameftpdone()
             j = 0
         j = j + 1
-        
+    
+    end_time = time.time()
+    print("cost time is {}".format(end_time - start_time))
     fuse_obj.delete_files()
     fuse_obj.stop_sftp_client()
+    #end_time = time.time()
+    #print("cost time is {}".format(end_time - start_time))
 
 
 if __name__ == '__main__':
