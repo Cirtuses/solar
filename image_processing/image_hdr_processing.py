@@ -6,19 +6,24 @@ import numpy as np
 import os
 from natsort import ns, natsorted
 
-index = 1
+index = 0
 resolution = ['LR', 'HR']
-date = ['20220112']
-#path=r'C:\Users\lucky_wang\OneDrive\二年级\太阳能\csv\v1\sub1'
-root_path = "/media/nucleus/solar/TongJi5F-LRHR/" + date[0] + '/'
-save_path = "/media/nucleus/solar/TongJi5F-LRHR/" + date[0] + '/'
+date = '20220113'
+
+#win
+dir_path = r"F:\TongJi5F-LRHR"
+
+root_path = os.path.join(dir_path, date)
+save_path = root_path
+print(save_path)
+
 
 
 def robertson(img_fn, imgs_path, save_path, count):
     # 第一阶段将所有图像加载到列表中，此外，需要常规HDR的曝光时间
     # 需要注意数据类型：图像应为1通道或3通道8位（np.uint8），曝光时间需要为np.float32，以秒为单位
     # img_fn = ['1tl.jpeg', '2tr.jpeg', '3bl.jpeg', '4br.jpeg']
-    img_list = [cv2.imread(imgs_path + fn) for fn in img_fn]
+    img_list = [cv2.imread(os.path.join(imgs_path, fn)) for fn in img_fn]
     expo = [100, 450, 700]
     exposure_times = np.array([1 / i for i in expo], dtype=np.float32)
     # exposure_times = np.array([15.0, 2.5, 0.25, 0.0333], dtype=np.float32)
@@ -39,7 +44,7 @@ def robertson(img_fn, imgs_path, save_path, count):
     # 为了保存或显示结果，我们需要将数据转换为[0..255]范围内的8位整数。
     res_mertens_8bit = np.clip(res_mertens * 255, 0, 255).astype('uint8')
 
-    cv2.imwrite(save_path + "%d.jpg" % count, res_mertens_8bit)
+    cv2.imwrite(os.path.join(save_path , "%d.jpg" % count), res_mertens_8bit)
     pass
 
 
@@ -53,8 +58,10 @@ if __name__ == '__main__':
     for day in date:
         total = 0
         dst_path = save_path + resolution[index] + '-HDR/'
+        dst_path = os.path.join(save_path, resolution[index]+'-HDR')
         os.mkdir(dst_path)
         img_path = root_path + resolution[index] + '/'
+        img_path = os.path.join(root_path, resolution[index])
         imgs = os.listdir(img_path)
         #  id0_iso100_expo450_(2020-12-21 09-00-00).jpg
         # for img in imgs:

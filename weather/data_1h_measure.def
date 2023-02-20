@@ -1,0 +1,26 @@
+&location
+City = 'SHANGHAI'
+StateProv = ' '
+Country = 'CHN'
+InWMO = 583670
+InLat = 31.29
+InLong = 121.2085
+InElev = 4
+InTime = 8
+/
+&wthdata
+NumInHour = 60
+InputFileType = 'CUSTOM'
+InFormat =  'DELIMITED'
+DataElements = Year, Month, Day, Hour, Atmos Pressure, Dry Bulb Temperature, Relative Humidity, Wind Direction, Wind Speed, Dew Point Temperature, Global Horizontal Radiation, Diffuse horizontal radiation, Direct Normal Radiation,
+DataUnits = ,,,, 'Pa','°C','%','°','m/s', '°C', Wh/m2, Wh/m2, Wh/m2,
+DataConversionFactors = 1,1,1,1,1,1,1,1,1,1,1,1,1,
+/
+&miscdata
+/
+&datacontrol
+NumRecordsToSkip = 0
+MaxNumRecordsToRead = 8760
+MissingOpaqueSkyCoverAction = RANDOM
+MissingWindDirAction = RANDOM
+/

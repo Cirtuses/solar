@@ -1,0 +1,1 @@
+python predict_img.py --predict_img 3408-2021-04-25 09-05-00-561-342-298-.jpg --data_type ghi --load_model resnet152_save_model/60I_300H/ghi/ResNet152_model_9.pt
