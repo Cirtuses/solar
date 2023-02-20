@@ -3,13 +3,15 @@ import os
 import pandas as pd
 import numpy as np
 import pytz
+import datetime
 
 import math
 
 
+dir_path=r"D:\solar\solar\class_res\60I-300H152"
+
 def dateparse(timestamp):
     return pd.datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S')
-
 
 def read_csv(file):
     # os.chdir(path)
@@ -195,10 +197,39 @@ def ephemeris(time, latitude, longitude, pressure=101325, temperature=12):
     DFOut['zenith'] = 90 - SunEl
     DFOut['solar_time'] = SolarTime
     DFOut.index = time
-
     return DFOut
 
-def execute(path):
+def calculate_dni(time, ghi, dhi):
+    ghi_data = pd.DataFrame()
+    dhi_data = pd.DataFrame()
+
+    ghi_data['TIME']= pd.to_datetime(time)
+    ghi_data['measured value'] = ghi
+    dhi_data['measured value'] = dhi
+
+    timezone = pytz.timezone('Asia/Shanghai')
+
+    t1=pd.DatetimeIndex(ghi_data['TIME'], tz = timezone)
+
+    latitude = 31.29 
+    longitude = 121.2085
+    #time = '2021-07-01 17:29:30'
+    
+    apparent_elevation = ephemeris(t1, latitude, longitude, pressure=101325.0, temperature=16.0)
+
+    print(apparent_elevation)
+    
+    degree = (90 - np.array(apparent_elevation['apparent_elevation'])) * np.pi/180 #转化为弧度
+
+
+    dni_m = np.true_divide(np.array(ghi_data['measured value'] - dhi_data['measured value']), np.cos(degree))
+    dni_m = np.around(dni_m, decimals = 2)
+    print(dni_m)
+    
+    return dni_m
+
+
+def calculate_dni_from_twofile(path, save_flag=False, measure_flag=False):  # 从分别的ghi_file.csv 和 dhi_file.csv 生成 dhi_file.csv
     os.chdir(path)
     filename_list = os.listdir(path)
     ghi_file = ''
@@ -212,57 +243,121 @@ def execute(path):
     # name = csv_to_xls(os.path.join(path, file))
     ghi_data = read_csv(ghi_file)
     dhi_data = read_csv(dhi_file)
-
-    ghi_data['TIME']= pd.to_datetime(ghi_data['TIME'])
     
-
-    timezone = pytz.timezone('Asia/Shanghai')
-
-    t1=pd.DatetimeIndex(ghi_data['TIME'], tz = timezone)
-
-    latitude = 31.29 
-    longitude = 121.2085
-    #time = '2021-07-01 17:29:30'
-
-    #apparent_elevation = pvlib.solarposition.ephemeris(t1, latitude, longitude, pressure=101325.0, temperature=16.0)
-    apparent_elevation = ephemeris(t1, latitude, longitude, pressure=101325.0, temperature=16.0)
-
-    print(apparent_elevation)
-
-    degree = (90 - np.array(apparent_elevation['apparent_elevation'])) * np.pi/180 #转化为弧度
-
-    #numpy.around(a,decimals)
-
-    dni_m = np.true_divide(np.array(ghi_data['measured value'] - dhi_data['measured value']), np.cos(degree))
-    dni_m = np.around(dni_m, decimals = 2)
-    print(dni_m)
+    dni_m = calculate_dni(ghi_data['TIME'], ghi_data['measured value'], dhi_data['measured value'])
     
-
-    dni_p = np.true_divide(np.array(ghi_data['predicted value'] - dhi_data['predicted value']), np.cos(degree))
-    dni_p = np.around(dni_p, decimals = 2)
-    print(dni_p)
-
-    # dni = np.concatenate((dni_m, dni_p))
+    dni_p  = calculate_dni(ghi_data['TIME'], ghi_data['predicted value'], dhi_data['predicted value'])
+    
+    
     result = pd.DataFrame()
     result['Time'] = ghi_data['TIME']
     result['dni_target'] = dni_m
     result['dni_predict'] = dni_p
-    # result = pd.DataFrame(dni_m, dni_p)
-    file_name = ghi_file.replace('ghi', 'dni')
-    result.to_csv(file_name, index=0)
+    if save_flag == True:
+        file_name = ghi_file.replace('ghi', 'dni')
+        #如果想要保存dni文件 去掉下一行注释
+        result.to_csv(file_name, index=0)
+    
+    if measure_flag==False:
+        return ghi_data['TIME'], ghi_data['predicted value'], dhi_data['predicted value'], result['dni_predict']
+    else:
+        return ghi_data['TIME'], ghi_data['measured value'], dhi_data['measured value'], result['dni_target']
 
-    #return ghi_data['TIME'], ghi_data['predicted value'], dhi_data['predicted value'], result['dni_p']
-    #return ghi_data['TIME'], ghi_data['measured value'], dhi_data['measured value'], result['dni_m']
 
+def calculate_dni_from_onefile(file_path, save_flag=False, save_name="dni.csv"):  # 从最原始的辐射计测量出的文件中计算dni 并存储为ghi_result.csv类似的文件
+    GHI = 'total_Avg' 
+    DHI = 'diffuse_Avg'
+    TIME = 'TMSTAMP'
+    
+    data = pd.read_csv(file_path, encoding = 'gbk', usecols = [TIME, GHI, DHI],parse_dates=[TIME], date_parser=dateparse, header = 1) # 从csv文件中读出对应的列
+    ghi_data = pd.DataFrame()
+    dhi_data = pd.DataFrame()
     
     
-    # apparent_elevation.to_csv("apparent_elevation.csv")
+    ghi_data['TIME']= pd.to_datetime(data[TIME])
+    ghi_data['measured value'] = data[GHI]
+    dhi_data['measured value'] = data[DHI]
+    
+    print(ghi_data['TIME'])
+    dni_m = calculate_dni(data[TIME], data[GHI], data[DHI])
+    
+    result = pd.DataFrame()
+    
+    result['Time'] = ghi_data['TIME']
+    result['dhi_measure'] = ghi_data['measured value']
+    result['dhi_measure'] = dhi_data['measured value']
+    result['dni_measure'] = dni_m
+    
+    if save_flag == True:
+        #如果想要保存dni文件 去掉下一行注释
+        result.to_csv(save_name, index=0)
+        
+    return ghi_data['TIME'], ghi_data['measured value'], dhi_data['measured value'], result['dni_measure']
+
+def calculate_dni_sourcefile(file_path, save_flag=False, save_name="dni.csv"):  # 从最原始的辐射计测量出的文件中计算dni，并生成HR_information_.csv类似的文件
+    GHI = 'total_Avg' 
+    DHI = 'diffuse_Avg'
+    TIME = 'TMSTAMP'
+    
+    data = pd.read_csv(file_path, encoding = 'gbk', usecols = [TIME, GHI, DHI],parse_dates=[TIME], date_parser=dateparse, header = 1) # 从csv文件中读出对应的列
+    ghi_data = pd.DataFrame()
+    dhi_data = pd.DataFrame()
+    
+    ghi_data['TIME']= pd.to_datetime(data[TIME])
+    ghi_data['measured value'] = data[GHI]
+    dhi_data['measured value'] = data[DHI]
+    
+    print(ghi_data['TIME'])
+    dni_m = calculate_dni(data[TIME], data[GHI], data[DHI])
+    
+    result = pd.DataFrame()
+    # test_time = time_now.strftime('%Y/%m/%d %H:%M:%S')  改str
+    result['Time'] = ghi_data['TIME'].map(lambda x:x.strftime('%Y/%m/%d %H:%M:%S').replace(':', '-').replace('/', '-'))
+    
+    result['ghi'] = data[GHI]
+    result['dhi'] = data[DHI]
+    result['dni'] = dni_m
+    
+    # criteria = (df["Month"] == 10 ) & (df["Day"] == 18)  & (df["Minute"] == 0) & (df["Second"] == 0)
+    criteria = (result.index%1 == 0)
+    if save_name.find('HR_information_') >= 0:
+        criteria = (result.index%2 == 0)
+        result.index = result.index // 2
+    if save_flag == True:
+        #如果想要保存dni文件 去掉下一行注释
+        result[criteria].to_csv(save_name, index=True, header=None)
+
+def calculate_dni_from_GHI_DHI(time, ghi, dhi): #直接从时间戳  ghi dhi里计算出dni
+    # time_now = datetime.datetime.now()
+    # test_time = time_now.strftime('%Y/%m/%d %H:%M:%S') #时间格式 2022/12/13 12:47:25
+    # print(test_time)
+    data = pd.DataFrame()
+    
+    data.insert(0, 'TIME', [time])
+    data.insert(1, 'GHI', [ghi])
+    data.insert(2, 'DHI', [dhi])
+    print(data)
+    tmp_data = pd.DataFrame()
+    tmp_data['TIME']= pd.to_datetime(data['TIME'])
+    
+    dni_m = calculate_dni(tmp_data['TIME'], data['GHI'], data['DHI'])
+    print(dni_m)
+    return dni_m.tolist()[0] #返回一个值
 
 
 def main():
-    dir_path=r'D:\PythonWorks\solar_project\cal_dni\csv_data'
-    os.chdir(dir_path)
-    execute(dir_path)
+    # os.chdir(dir_path)
+    # calculate_dni_from_twofile(dir_path, True) #从两个文件里计算DNI
+    # dir_path = r"D:/solar/solar/20211018/20211018.csv"
+    # calculate_dni_from_onefile(dir_path, True) #从原始的辐射计提取出的计算DNI
+    
+    #to do 使用时间和两个值计算DNI
+    
+    test_time = '2022/7/1 16:00:00'
+    # calculate_dni_from_GHI_DHI(time, ghi, dhi)
+    dni = calculate_dni_from_GHI_DHI(test_time, 692, 350)
+    print(dni)
+    # print(dni.tolist(), type(dni.tolist()))
 
 
 if __name__ == "__main__":

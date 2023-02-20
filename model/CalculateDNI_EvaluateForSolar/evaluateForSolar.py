@@ -8,8 +8,16 @@ import os
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 from soupsieve import select
 
+p_model = True
+
 # dir_path = r"D:\PythonWorks\solar_project\Result_8-12" ## win format
 dir_path = "/Users/cirtus/Desktop/solar/test/solar/data/" ## 300-300
+dir_path = r"D:\solar\solar\class_res" ## 300-300
+dir_path = r'D:\solar\target\new'
+
+# dir_path = r'D:\solar\target\MLP'
+# print(dir_path)
+# exit(os.listdir(dir_path))
 
 
 def dateparse(timestamp):
@@ -143,12 +151,32 @@ def main():
                 number = re.findall("\d+",dir) 
                 print(number)
                 late = int(number[1]) // int(number[0])
+                # late = 1 #student
                 print(late)
                 
                 y = f['Measurement'].to_numpy()
                 # y_hat = f['WeightForecst'].to_numpy()
                 y_hat = f['Nowcasting'].to_numpy()
-                p = f['Measurement'].shift(late).to_numpy()
+                
+                # p = f['Measurement'].shift(late).to_numpy()
+                
+                if p_model == True:
+                    
+                    
+                    # f['Measurement'] = f['Measurement'].shift(late)
+                    
+                    
+                    p = f.shift(late)
+                    print(p)
+                    
+                    data = pd.merge(f,p,how='left',on='Time')
+                    print(data)
+
+                    print(type(p))
+                    exit()
+                
+                # p = f['Measurement'].shift(late).to_numpy()
+                
                 # p = f['Nowcasting'].shift(1).to_numpy()
                 # y_hat = p
 
@@ -159,17 +187,11 @@ def main():
                 ## late
                 
 
-                # print(y[late:])
-                # print(y_hat[late:])
-                # print(p[late:])
-                # exit()
-                
 
-                # nowcasting = nowcasting.where(nowcasting > 0, 0)
 
                 mae, nmae, rmse, nrmse, r, mape, mbe = indicators(y[late:], y_hat[late:])
-                # mae, nmae, rmse, nrmse, r, mape, mbe = indicators(y[late:], p[late:])
-                # exit()
+                mae, nmae, rmse, nrmse, r, mape, mbe = indicators(y[late:], p[late:])  # 用于计算p model
+
                 
                 ss_mae = SS_MAE(y[late:], y_hat[late:], p[late:])
                 ss_rmse = SS_RMSE(y[late:], y_hat[late:], p[late:])
